@@ -81,7 +81,7 @@ def parse(mgp_id, raw_html):
         rows = student_table.find_all('tr')
         rows = [x for x in rows if not x.find('th')]  # remove header
         student_links = [tr.find('td').find('a')['href'] for tr in rows]
-        students = [link_to_id(a['href']) for a in student_links]
+        students = [link_to_id(s) for s in student_links]
 
     return {
         'id': mgp_id,
