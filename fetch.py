@@ -9,19 +9,31 @@ from parse import parse
 errors = {}
 data = []
 
+print('Loading any existing data')
 try:
     with open('data.json', 'r') as infile:
         data = json.load(infile)['nodes']
+    print('Found existing data')
+except:
+    print('No existing data found')
+
+try:
+    with open('metadata.json', 'r') as infile:
+        metadata = json.load(infile)
 except:
     pass
 
 existing = set(x['id'] for x in data)
+print('Skipping {} known records'.format(len(existing)))
 
 sem = asyncio.BoundedSemaphore(5)
 loop = asyncio.get_event_loop()
 
-id_min = 1
-id_max = 216676
+id_min = metadata['id_min']
+id_max = metadata['id_max']
+bad_ids = set(metadata.get('bad_ids', []))
+max_found = id_max
+try_further = max_found + 200
 
 
 async def fetch(session, url):
@@ -38,6 +50,7 @@ async def fetch_by_id(session, mgp_id):
 
         if 'You have specified an ID that does not exist in the database.' in raw_html:
             print('bad id={}'.format(mgp_id))
+            bad_ids.add(mgp_id)
             return
 
         failed = False
@@ -56,13 +69,17 @@ async def fetch_by_id(session, mgp_id):
 
 
 async def main():
+    # remove `and i not in bad_ids` if you want to retry previous failures
     async with aiohttp.ClientSession(loop=loop) as session:
         await asyncio.wait([
-            fetch_by_id(session, i) for i in range(id_min, 1 + id_max) if i not in existing
+            fetch_by_id(session, i) for i in range(id_min, try_further)
+            if i not in existing and i not in bad_ids
         ])
 
 
 loop.run_until_complete(main())
+
+print('Done fetching, saving to disk...')
 
 with open('errors.txt', 'w') as outfile:
     for i, error in errors.items():
@@ -70,3 +87,13 @@ with open('errors.txt', 'w') as outfile:
 
 with open('data.json', 'w') as outfile:
     json.dump({'nodes': data}, outfile)
+
+processed = set(x['id'] for x in data)
+with open('metadata.json', 'w') as outfile:
+    json.dump({
+        'id_min': id_min,
+        'id_max': max(processed),
+        'bad_ids': list(bad_ids),
+    }, outfile)
+
+print('Done!')
