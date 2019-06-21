@@ -84,7 +84,7 @@ To be a nice person, this program rate-limits itself to have 5 concurrent
 workers hitting the math genealogy website. Downloading the entire database in
 this way takes about 6 hours. This repository contains a copy of the entire
 dataset in `data.json` so you don't have to hammer their servers. This dataset
-was fetched on 2017-06-14.
+was fetched on 2019-06-17.
 
 However, if you insist on being a bad person, you can increase the limit on the
 worker semaphore in `fetch.py` and re-run it.
