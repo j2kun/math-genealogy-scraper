@@ -2,7 +2,7 @@
 
 Code for scraping the math genealogy website.
 
-A copy of the database, scraped on 2017-06-14, is contained in `data.json`.
+A copy of the database, scraped on 2019-06-17, is contained in `data.json`.
 
 Requirements:
 
