@@ -69,7 +69,7 @@ def parse(mgp_id, raw_html):
         try:
             school = phd.text[5:-4].strip()
             year = int(phd.text.split()[-1])
-        except e:
+        except Exception as e:
             pass
 
     advisors = []
