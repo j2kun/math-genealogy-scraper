@@ -73,12 +73,12 @@ def parse(mgp_id, raw_html):
             pass
 
     advisors = []
-    advisor_container = try_find(text=re.compile('Advisor( [0-9]*)?:'),
-                                 if_found=lambda x: x.parent)
-    if advisor_container:
-        advisor_links = advisor_container.find_all(
+    advisor_text_markers = main_content.find_all(
+        text=re.compile('Advisor( [0-9]*)?:'))
+    for advisor_text_marker in advisor_text_markers:
+        advisor_links = advisor_text_marker.parent.find_all(
             'a', attrs={'href': re.compile('id=[0-9]+')})
-        advisors = [link_to_id(a['href']) for a in advisor_links]
+        advisors += [link_to_id(a['href']) for a in advisor_links]
 
     students = []
     student_table = try_find('table')
