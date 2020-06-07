@@ -6,6 +6,7 @@ import async_timeout
 
 from parse import parse
 
+ERROR_STRING = 'You have specified an ID that does not exist in the database.'
 errors = {}
 data = []
 
@@ -14,13 +15,13 @@ try:
     with open('data.json', 'r') as infile:
         data = json.load(infile)['nodes']
     print('Found existing data')
-except:
+except Exception as e:
     print('No existing data found')
 
 try:
     with open('metadata.json', 'r') as infile:
         metadata = json.load(infile)
-except:
+except Exception as e:
     pass
 
 existing = set(x['id'] for x in data)
@@ -45,10 +46,11 @@ async def fetch(session, url):
 
 async def fetch_by_id(session, mgp_id):
     async with sem:
-        url = 'https://genealogy.math.ndsu.nodak.edu/id.php?id={}'.format(mgp_id)
+        url = 'https://genealogy.math.ndsu.nodak.edu/id.php?id={}'.format(
+            mgp_id)
         raw_html = await fetch(session, url)
 
-        if 'You have specified an ID that does not exist in the database.' in raw_html:
+        if ERROR_STRING in raw_html:
             print('bad id={}'.format(mgp_id))
             bad_ids.add(mgp_id)
             return
@@ -90,10 +92,11 @@ with open('data.json', 'w') as outfile:
 
 processed = set(x['id'] for x in data)
 with open('metadata.json', 'w') as outfile:
-    json.dump({
-        'id_min': id_min,
-        'id_max': max(processed),
-        'bad_ids': list(bad_ids),
-    }, outfile)
+    json.dump(
+        {
+            'id_min': id_min,
+            'id_max': max(processed),
+            'bad_ids': list(bad_ids),
+        }, outfile)
 
 print('Done!')
